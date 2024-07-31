@@ -8,42 +8,108 @@ from bottle import default_app
 TEMPLATE_PATH.insert(0, './')
 
 
-@route('/todo')
-def todo_list():
 
+#LOGIN AND SIGNUP#
+
+@route('/login')
+def login():
+    return template('login.tpl') # Takes the user to the login page
+
+# Route to Sign Up Page
+@route('/signup')
+def signup():
+    return template('signup.tpl') # Takes the user to the signup page
+
+
+
+# Route to Handle Login Form Submission
+@route('/login', method='POST')
+def do_login():
+    username = request.forms.get('username')
+    password = request.forms.get('password')
+
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
+    user = c.fetchone()
+    conn.close()
+
+    if user:
+        return redirect(f'/todo/{username}')
+    else:
+        return redirect('/login')
+
+
+
+# Route to Handle Signup Form Submission
+@route('/signup', method='POST')
+def do_signup():
+    username = request.forms.get('username')
+    password = request.forms.get('password')
+
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    try:
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        conn.close()
+        return "Username already exists"
+    
+    conn.close()
+    new_table(username)
+    return redirect('/login')
+
+def new_table(username):
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
-    c.execute("SELECT id, task FROM items WHERE status LIKE '1'")
-    result = c.fetchall()
+    table_name= f"{username}_list" 
+    c.execute(f"CREATE TABLE IF NOT EXISTS {table_name} (id INTEGER PRIMARY KEY, task TEXT, status INTEGER)")
+    conn.commit()
     c.close()
 
-    output = template('make_table', rows=result)
-    return output
 
 
-@route('/new', method='GET')
-def new_item():
+
+#main website
+
+
+@route('/todo/<username>')
+def todo_list(username):
+    conn = sqlite3.connect('todo.db')
+    c = conn.cursor()
+    table_name = f"{username}_list"
+    c.execute(f"SELECT id, task FROM {table_name} WHERE status LIKE '1'")
+    result = c.fetchall()
+    c.close()
+    conn.close()
+
+    output = template('make_table', rows=result, username=username)
+    return output  
+
+
+@route('/new/<username>', method='GET')
+def new_item(username):
 
     if request.GET.save:
 
-        new = request.GET.task.strip()
+        new = request.GET.task.strip() 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-
-        c.execute("INSERT INTO items (task,status) VALUES (?,?)", (new, 1))
-        new_id = c.lastrowid
+        table_name = f"{username}_list"
+        c.execute(f"INSERT INTO {table_name} (task,status) VALUES (?,?)", (new, 1)) 
 
         conn.commit()
         c.close()
 
-        redirect('/todo')
+        redirect(f'/todo/{username}')
 
     else:
-        return template('new_task.tpl')
+        return template('new_task.tpl', username=username)
 
 
-@route('/edit/<no:int>', method='GET')
-def edit_item(no):
+@route('/edit/<username>/<no:int>', method='GET')
+def edit_item(no, username):
 
     if request.GET.save:
         edit = request.GET.task.strip()
@@ -56,17 +122,18 @@ def edit_item(no):
 
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("UPDATE items SET task = ?, status = ? WHERE id LIKE ?", (edit, status, no))
+        table_name = f"{username}_list"
+        c.execute(f"UPDATE {table_name} SET task = ?, status = ? WHERE id LIKE ?", (edit, status, no))
         conn.commit()
 
-        redirect('/todo')
+        redirect(f'/todo/{username}')
     else:
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
         c.execute("SELECT task FROM items WHERE id LIKE ?", (str(no)))
         cur_data = c.fetchone()
 
-        return template('edit_task', old=cur_data, no=no)
+        return template('edit_task', old=cur_data, no=no, username=username)
 
 
 
@@ -101,48 +168,4 @@ def load_static(filepath):
 
 
 
-
-#LOGIN AND SIGNUP#
-
-@route('/login')
-def login():
-    return template('login_page.tpl') # Takes the user to the login page
-
-# Route to Sign Up Page
-@route('/signup')
-def signup():
-    return template('signup_page.tpl') # Takes the user to the signup page
-
-@route('/login', method='POST')
-def do_login():
-    username = request.forms.get('username')
-    password = request.forms.get('password')
-
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
-    user = c.fetchone()
-    conn.close()
-
-    if user:
-        return redirect('/todo')
-    else:
-        return redirect('/login')
-  
-
-def do_signup():
-    username = request.forms.get('username')
-    password = request.forms.get('password')
-
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    try:
-        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-        conn.commit()
-    except sqlite3.IntegrityError:
-        conn.close()
-        return "Username already exists"
-    
-    conn.close()
-    return redirect('/login')
 

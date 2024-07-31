@@ -9,12 +9,12 @@
     <td>{{col}}</td>
   %end
   <td>
-    <form action="/edit/{{ row[0] }}">
+    <form action="/edit/{{ username }}/{{ row[0] }}">
     <button type="submit">Edit</button>
     </form>
     </td>
   </tr>
 %end
 </table>
-<a href="/new">New Task</a>
+<a href="/new/{{ username }}">New</a>
 
