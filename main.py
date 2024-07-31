@@ -130,7 +130,8 @@ def edit_item(no, username):
     else:
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
-        c.execute("SELECT task FROM items WHERE id LIKE ?", (str(no)))
+        table_name = f"{username}_list"
+        c.execute(f"SELECT task FROM {table_name} WHERE id LIKE ?", (str(no)))
         cur_data = c.fetchone()
 
         return template('edit_task', old=cur_data, no=no, username=username)
