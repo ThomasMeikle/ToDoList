@@ -5,7 +5,7 @@ from bottle import route, run, debug, template, request, static_file, error, TEM
 from bottle import default_app
 
 # Set the template path to the current directory
-TEMPLATE_PATH.insert(0, './13CSC')
+TEMPLATE_PATH.insert(0, './')
 
 
 @route('/todo')
@@ -85,3 +85,7 @@ run(reloader=True)
 # remember to remove reloader=True and debug(True) when you move your
 # application from development to a productive environment
 
+@route('/static/<filepath:path>')
+def load_static(filepath):
+    print(f"Serving static file: {filepath}")
+    return static_file(filepath, root='./static')
