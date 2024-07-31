@@ -1,8 +1,11 @@
 import sqlite3
-from bottle import route, run, debug, template, request, static_file, error
+from bottle import route, run, debug, template, request, static_file, error, TEMPLATE_PATH
 
 # only needed when you run Bottle on mod_wsgi
 from bottle import default_app
+
+# Set the template path to the current directory
+TEMPLATE_PATH.insert(0, './13CSC')
 
 
 @route('/todo')
