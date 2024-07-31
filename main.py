@@ -89,3 +89,26 @@ run(reloader=True)
 def load_static(filepath):
     print(f"Serving static file: {filepath}")
     return static_file(filepath, root='./static')
+
+
+
+
+
+
+
+
+
+
+
+
+
+#LOGIN AND SIGNUP#
+
+@route('/')
+def login():
+    return template('login_page.tpl') # Takes the user to the login page
+
+# Route to Sign Up Page
+@route('/signup')
+def signup():
+    return template('signup_page.tpl') # Takes the user to the signup page
