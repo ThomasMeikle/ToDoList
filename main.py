@@ -104,7 +104,7 @@ def load_static(filepath):
 
 #LOGIN AND SIGNUP#
 
-@route('/')
+@route('/login')
 def login():
     return template('login_page.tpl') # Takes the user to the login page
 
@@ -112,3 +112,37 @@ def login():
 @route('/signup')
 def signup():
     return template('signup_page.tpl') # Takes the user to the signup page
+
+@route('/login', method='POST')
+def do_login():
+    username = request.forms.get('username')
+    password = request.forms.get('password')
+
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
+    user = c.fetchone()
+    conn.close()
+
+    if user:
+        return redirect('/todo')
+    else:
+        return redirect('/login')
+  
+
+def do_signup():
+    username = request.forms.get('username')
+    password = request.forms.get('password')
+
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    try:
+        c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        conn.close()
+        return "Username already exists"
+    
+    conn.close()
+    return redirect('/login')
+
