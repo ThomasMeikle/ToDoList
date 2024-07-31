@@ -49,7 +49,7 @@ def edit_item(no):
         edit = request.GET.task.strip()
         status = request.GET.status.strip()
 
-        if status == 'open':
+        if status == 'In Progress':
             status = 1
         else:
             status = 0
