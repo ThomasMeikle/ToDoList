@@ -1,5 +1,5 @@
 import sqlite3
-from bottle import route, run, debug, template, request, static_file, error, TEMPLATE_PATH
+from bottle import route, run, debug, template, request, static_file, error, TEMPLATE_PATH, redirect
 
 # only needed when you run Bottle on mod_wsgi
 from bottle import default_app
@@ -36,7 +36,7 @@ def new_item():
         conn.commit()
         c.close()
 
-        return '<p>The new task was inserted into the database, the ID is %s</p>' % new_id
+        redirect('/todo')
 
     else:
         return template('new_task.tpl')
@@ -59,7 +59,7 @@ def edit_item(no):
         c.execute("UPDATE items SET task = ?, status = ? WHERE id LIKE ?", (edit, status, no))
         conn.commit()
 
-        return '<p>The item number %s was successfully updated</p>' % no
+        redirect('/todo')
     else:
         conn = sqlite3.connect('todo.db')
         c = conn.cursor()
