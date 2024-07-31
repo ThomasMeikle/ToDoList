@@ -23,8 +23,15 @@ def signup():
 
 
 # Route to Handle Login Form Submission
+
+
+    
 @route('/login', method='POST')
-def do_login():
+def do_login(): 
+   # Handles the login form submission.
+   # Checks the provided username and password against the database.
+   # If valid, sets cookies and redirects to the user's todo list.
+    
     username = request.forms.get('username')
     password = request.forms.get('password')
 
@@ -35,6 +42,7 @@ def do_login():
     conn.close()
 
     if user:
+        # Set cookies to remember the username and signed-in status
         response.set_cookie('username', username)
         response.set_cookie('signed_in', 'true')
         return redirect(f'/todo/{username}')
@@ -46,6 +54,11 @@ def do_login():
 # Route to Handle Signup Form Submission
 @route('/signup', method='POST')
 def do_signup():
+    #Handles the signup form submission.
+    #Creates a new user in the database.
+        #Sets cookies for the new user and redirects to the login page.
+    
+    
     username = request.forms.get('username')
     password = request.forms.get('password')
 
@@ -60,11 +73,14 @@ def do_signup():
     
     conn.close()
     new_table(username)
+    # Set cookies to remember the username and signed-in status
     response.set_cookie('username', username)
     response.set_cookie('signed_in', 'true')
     return redirect('/login')
 
 def new_table(username):
+    #Creates a new table in the todo database for the new user.
+    # The table is named after the username with a _list at the end.
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
     table_name= f"{username}_list" 
@@ -80,9 +96,13 @@ def new_table(username):
 
 @route('/todo/<username>')
 def todo_list(username):
+
+
+    #Displays the todo list for the given user.
+    #Checks if the user is signed in; if not, redirects to the login page.
     if request.get_cookie('signed_in') != 'true':
         return redirect('/login')
-    conn = sqlite3.connect('todo.db')
+    conn = sqlite3.connect('todo.db') 
     c = conn.cursor()
     table_name = f"{username}_list"
     c.execute(f"SELECT id, task FROM {table_name} WHERE status LIKE '1'")
@@ -90,12 +110,16 @@ def todo_list(username):
     c.close()
     conn.close()
 
+    # Render the todo list page with the current username and tasks
     output = template('make_table', rows=result, username=username)
     return output  
 
 
 @route('/new/<username>', method='GET')
 def new_item(username):
+
+    #Displays a form to add a new item to the todo list.
+    #Checks if the user is signed in; if not, redirects to the login page.
     if request.get_cookie('signed_in') != 'true':
         return redirect('/login')
     
