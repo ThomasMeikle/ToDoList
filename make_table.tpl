@@ -18,3 +18,6 @@
 </table>
 <a href="/new/{{ username }}">New</a>
 
+
+<p>Currently signed in as: {{username}}</p>
+<a href="/logout">Logout</a>

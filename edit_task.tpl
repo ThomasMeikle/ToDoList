@@ -10,3 +10,6 @@
   <br>
   <input type="submit" name="save" value="save">
 </form>
+
+<p>Currently signed in as: {{username}}</p>
+<a href="/logout">Logout</a>

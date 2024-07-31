@@ -1,5 +1,5 @@
 import sqlite3
-from bottle import route, run, debug, template, request, static_file, error, TEMPLATE_PATH, redirect
+from bottle import route, run, debug, template, request, static_file, error, TEMPLATE_PATH, redirect, response
 
 # only needed when you run Bottle on mod_wsgi
 from bottle import default_app
@@ -35,6 +35,8 @@ def do_login():
     conn.close()
 
     if user:
+        response.set_cookie('username', username)
+        response.set_cookie('signed_in', 'true')
         return redirect(f'/todo/{username}')
     else:
         return redirect('/login')
@@ -58,6 +60,8 @@ def do_signup():
     
     conn.close()
     new_table(username)
+    response.set_cookie('username', username)
+    response.set_cookie('signed_in', 'true')
     return redirect('/login')
 
 def new_table(username):
@@ -76,6 +80,8 @@ def new_table(username):
 
 @route('/todo/<username>')
 def todo_list(username):
+    if request.get_cookie('signed_in') != 'true':
+        return redirect('/login')
     conn = sqlite3.connect('todo.db')
     c = conn.cursor()
     table_name = f"{username}_list"
@@ -90,7 +96,9 @@ def todo_list(username):
 
 @route('/new/<username>', method='GET')
 def new_item(username):
-
+    if request.get_cookie('signed_in') != 'true':
+        return redirect('/login')
+    
     if request.GET.save:
 
         new = request.GET.task.strip() 
@@ -110,6 +118,8 @@ def new_item(username):
 
 @route('/edit/<username>/<no:int>', method='GET')
 def edit_item(no, username):
+    if request.get_cookie('signed_in') != 'true':
+        return redirect('/login')
 
     if request.GET.save:
         edit = request.GET.task.strip()
@@ -136,6 +146,11 @@ def edit_item(no, username):
 
         return template('edit_task', old=cur_data, no=no, username=username)
 
+@route('/logout')
+def logout():
+    response.delete_cookie('username')
+    response.delete_cookie('signed_in')
+    return redirect('/login')
 
 
 @error(403)
